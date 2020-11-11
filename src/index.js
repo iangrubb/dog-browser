@@ -95,22 +95,26 @@ document.addEventListener("DOMContentLoaded", ()=>{
         const initial = pageCount * 9
         const selectBreeds = breeds.slice(initial, initial + 9)
 
-        return Promise.all(
-            selectBreeds.map(breed => fetchDogImage(breed.name))
-        ).then(resps => {
-            pageCount++
-            resps.forEach((resp, idx) => {
-                const key = breeds[initial + idx].name
-                sampleBreedImages[key] = resp.message
+        if (selectBreeds.length > 0) {
+            return Promise.all(
+                selectBreeds.map(breed => fetchDogImage(breed.stub))
+            ).then(resps => {
+                pageCount++
+                resps.forEach((resp, idx) => {
+                    const key = breeds[initial + idx].name
+                    sampleBreedImages[key] = resp.message
+                })
             })
-        })
+        } else {
+            return new Promise()
+        }
+
+        
 
     }
 
 
-
-
-
+    // View Loading
 
     const loadRandomDogOfBreed = breed => {
         fetchDogImage(breed.stub)
@@ -156,7 +160,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
         `
     }
 
-
     // App initialization and first render
 
     const renderApp = breeds => {
@@ -176,6 +179,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 const breed = breeds.find(b => b.name === e.target.dataset.breedName)
                 selectedBreed = breed
                 loadNavigationForBreed(selectedBreed)
+           } else if (e.target.id === "more-dogs-button") {
+                fetchSampleBreedImages(breeds)
+                .then(() => {
+                    mainTag.innerHTML = renderDogBrowserHTML(sampleBreedImages)
+                })
            }
         })
 
