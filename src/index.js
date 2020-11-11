@@ -47,19 +47,68 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
 
 
+
+
     // HTML rendering
 
     const dogImageHTML = (url, breedName) => {
         return `<img src="${url}" alt="${breedName}" width="200">`
     }
 
+    const dogSelectHTML = (url, name) => {
+        return `
+            <div>
+                <h3>${name}</h3>
+                ${dogImageHTML(url, name)}
+                <button data-breed-name="${name}">Select</button>
+            </div>
+        `
+    }
+
+    const renderDogBrowserHTML = (samples) => {
+        const dogSelectors = []
+        for (const breed in samples) {
+            dogSelectors.push(dogSelectHTML(samples[breed], breed))
+        }
+        return `
+            ${dogSelectors.join("")}
+            <button id="more-dogs-button">More</button>
+        `
+    }
+
     
+
+
+
     // Data Access logic
 
     const fetchDogImage = stub => {
         return fetch(`https://dog.ceo/api/breed/${stub}/images/random`)
         .then(resp => resp.json())
     }
+
+    const sampleBreedImages = {}
+
+    let pageCount = 0
+
+    const fetchSampleBreedImages = (breeds) => {
+        const initial = pageCount * 9
+        const selectBreeds = breeds.slice(initial, initial + 9)
+
+        return Promise.all(
+            selectBreeds.map(breed => fetchDogImage(breed.name))
+        ).then(resps => {
+            pageCount++
+            resps.forEach((resp, idx) => {
+                const key = breeds[initial + idx].name
+                sampleBreedImages[key] = resp.message
+            })
+        })
+
+    }
+
+
+
 
 
 
@@ -80,6 +129,17 @@ document.addEventListener("DOMContentLoaded", ()=>{
         .join("")
     }
 
+    const loadBreedBrowser = (breeds) => {
+        if (Object.keys(sampleBreedImages).length === 0) {
+            fetchSampleBreedImages(breeds)
+            .then(() => {
+                mainTag.innerHTML = renderDogBrowserHTML(sampleBreedImages)
+            })
+        } else {
+            mainTag.innerHTML = renderDogBrowserHTML(sampleBreedImages)
+        }
+    }
+
     // Navigation for a breed
 
     const breedOptionHTML = (name, isSelected) => `<option ${isSelected ? "selected" : ""}>${name}</option>`
@@ -92,6 +152,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
             <select>
             <button id="random-shiba-button">Random ${selectedBreedName}</button>
             <button id="viewed-shibas-button">Viewed ${selectedBreedName}s</button>
+            <button id="browse-breeds">Browse Breeds</button>
         `
     }
 
@@ -111,8 +172,11 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 
         mainTag.addEventListener("click", e => {
-            
-
+           if (e.target.dataset.breedName) {
+                const breed = breeds.find(b => b.name === e.target.dataset.breedName)
+                selectedBreed = breed
+                loadNavigationForBreed(selectedBreed)
+           }
         })
 
         headerTag.addEventListener("click", e => {
@@ -120,6 +184,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 loadRandomDogOfBreed(selectedBreed)
             } else if (e.target.id === "viewed-shibas-button") {
                 loadViewedDogsOfBreed(selectedBreed)
+            } else if (e.target.id === "browse-breeds"){
+                loadBreedBrowser(breeds)
             }
         })
 
@@ -133,8 +199,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     fetchBreeds()
     .then(renderApp)
-
-
 
 })
 
