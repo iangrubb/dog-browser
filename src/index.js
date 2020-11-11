@@ -6,12 +6,18 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const headerTag = document.querySelector("header")
     const navTag = document.querySelector("nav")
 
-    // Shiba images (set in case of fetching the same random image again)
+    // Dog images (set in case of fetching the same random image again)
 
-    const viewedShibas = new Set()
+    const viewedDogs = {}
 
-    const saveShiba = shibaUrl => {
-        viewedShibas.add(shibaUrl)
+    const saveDog = (breedName, url) => {
+        if (viewedDogs[breedName]) {
+            viewedDogs[breedName].add(url)
+        } else {
+            const breedSet = new Set()
+            breedSet.add(url)
+            viewedDogs[breedName] = breedSet
+        }
     }
 
 
@@ -56,25 +62,21 @@ document.addEventListener("DOMContentLoaded", ()=>{
     }
 
 
-    // View definitions
 
-    const loadRandomDogView = breed => {
+    const loadRandomDogOfBreed = breed => {
         fetchDogImage(breed.stub)
         .then(data => {
-            console.log(data)
             const imageUrl = data.message
-            console.log(dogImageHTML(imageUrl, breed.name))
+            saveDog(breed.name, imageUrl)
             mainTag.innerHTML = dogImageHTML(imageUrl, breed.name)
         })
     }
 
-
-    // Previous shibas view
-
-    const loadViewedShibasView = () => {
+    const loadViewedDogsOfBreed = breed => {
+        const breedSet = viewedDogs[breed.name]
         mainTag.innerHTML = 
-        Array.from(viewedShibas)
-        .map(shibaImageHTML)
+        Array.from(breedSet)
+        .map(imageUrl => dogImageHTML(imageUrl, breed.name))
         .join("")
     }
 
@@ -100,7 +102,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
         
         const loadNavigationForBreed = breed => {
             renderNavigation(breeds, breed.name)
-            loadRandomDogView(breed)
+            loadRandomDogOfBreed(breed)
         }
 
         let selectedBreed = {name: "shiba", stub: "shiba"}
@@ -115,9 +117,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
         headerTag.addEventListener("click", e => {
             if (e.target.id === "random-shiba-button") {
-                loadRandomDogView(selectedBreed)
+                loadRandomDogOfBreed(selectedBreed)
             } else if (e.target.id === "viewed-shibas-button") {
-                loadViewedShibasView()
+                loadViewedDogsOfBreed(selectedBreed)
             }
         })
 
