@@ -1,25 +1,67 @@
 document.addEventListener("DOMContentLoaded", ()=>{
 
-    const mainTag = document.querySelector("main")
+    // DOM elements
 
-    const renderShiba = shibaUrl => {
-        mainTag.innerHTML = `
-            <button id="new-random-shiba">New Shiba</button>
-            <img src="${shibaUrl}" alt="A Shiba" width="200" >
-            `
+    const mainTag = document.querySelector("main")
+    const headerTag = document.querySelector("header")
+
+    // Shiba images (set in case of fetching the same random image again)
+
+    const viewedShibas = new Set()
+
+    const saveShiba = shibaUrl => {
+        viewedShibas.add(shibaUrl)
     }
+
+
+    // HTML rendering
+
+    const shibaImageHTML = shibaUrl => `<img src="${shibaUrl}" alt="Shiba" width="200" >`
+
+   
+    // Data Access logic
 
     const fetchShibaImage = () => {
         return fetch("https://dog.ceo/api/breed/shiba/images/random")
         .then(resp => resp.json())
     }
 
-    fetchShibaImage().then(data => renderShiba(data.message))
+
+    // View definitions
+
+    const loadRandomShibaView = () => {
+        fetchShibaImage()
+        .then(data => {
+            const shibaUrl = data.message
+            saveShiba(shibaUrl)
+            mainTag.innerHTML = shibaImageHTML(shibaUrl)
+        })
+    }
+
+    // Previous shibas view
+
+    const loadViewedShibasView = () => {
+        mainTag.innerHTML = 
+        Array.from(viewedShibas)
+        .map(shibaImageHTML)
+        .join("")
+    }
+
+
+    // DOM manipulation
+
+    loadRandomShibaView()
 
     mainTag.addEventListener("click", e => {
-        console.log(e.target.id)
-        if (e.target.id === "new-random-shiba") {
-            fetchShibaImage().then(data => renderShiba(data.message))
+        
+
+    })
+
+    headerTag.addEventListener("click", e => {
+        if (e.target.id === "random-shiba-button") {
+            loadRandomShibaView()
+        } else if (e.target.id === "viewed-shibas-button") {
+            loadViewedShibasView()
         }
     })
 
