@@ -43,27 +43,31 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     // HTML rendering
 
-    const shibaImageHTML = shibaUrl => `<img src="${shibaUrl}" alt="Shiba" width="200" >`
+    const dogImageHTML = (url, breedName) => {
+        return `<img src="${url}" alt="${breedName}" width="200">`
+    }
 
-   
+    
     // Data Access logic
 
-    const fetchShibaImage = () => {
-        return fetch("https://dog.ceo/api/breed/shiba/images/random")
+    const fetchDogImage = stub => {
+        return fetch(`https://dog.ceo/api/breed/${stub}/images/random`)
         .then(resp => resp.json())
     }
 
 
     // View definitions
 
-    const loadRandomShibaView = () => {
-        fetchShibaImage()
+    const loadRandomDogView = breed => {
+        fetchDogImage(breed.stub)
         .then(data => {
-            const shibaUrl = data.message
-            saveShiba(shibaUrl)
-            mainTag.innerHTML = shibaImageHTML(shibaUrl)
+            console.log(data)
+            const imageUrl = data.message
+            console.log(dogImageHTML(imageUrl, breed.name))
+            mainTag.innerHTML = dogImageHTML(imageUrl, breed.name)
         })
     }
+
 
     // Previous shibas view
 
@@ -76,16 +80,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     // Navigation for a breed
 
-    const breedOptionHTML = (breed, isSelected) => `<option ${isSelected ? "selected" : ""}>${breed.name}</option>`
+    const breedOptionHTML = (name, isSelected) => `<option ${isSelected ? "selected" : ""}>${name}</option>`
 
-    const loadNavigationForBreed = (breeds, selectedBreed) => {
+    const renderNavigation = (breeds, selectedBreedName) => {
         navTag.innerHTML= `
             <span>Select Breed:<span>
             <select>
-                ${breeds.map(breed => breedOptionHTML(breed, breed.name === selectedBreed.name)).join("")}
+                ${breeds.map(breed => breedOptionHTML(breed.name, breed.name === selectedBreedName)).join("")}
             <select>
-            <button id="random-shiba-button">Random ${selectedBreed.name}</button>
-            <button id="viewed-shibas-button">Viewed ${selectedBreed.name}s</button>
+            <button id="random-shiba-button">Random ${selectedBreedName}</button>
+            <button id="viewed-shibas-button">Viewed ${selectedBreedName}s</button>
         `
     }
 
@@ -93,12 +97,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
     // App initialization and first render
 
     const renderApp = breeds => {
+        
+        const loadNavigationForBreed = breed => {
+            renderNavigation(breeds, breed.name)
+            loadRandomDogView(breed)
+        }
 
-        console.log(breeds)
+        let selectedBreed = {name: "shiba", stub: "shiba"}
 
-        loadNavigationForBreed(breeds, {name: "shiba", stub: "shiba"})
+        loadNavigationForBreed(selectedBreed)
 
-        loadRandomShibaView()
 
         mainTag.addEventListener("click", e => {
             
@@ -107,14 +115,16 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
         headerTag.addEventListener("click", e => {
             if (e.target.id === "random-shiba-button") {
-                loadRandomShibaView()
+                loadRandomDogView(selectedBreed)
             } else if (e.target.id === "viewed-shibas-button") {
                 loadViewedShibasView()
             }
         })
 
         navTag.addEventListener("change", e => {
-            console.log("Selected Name:", e.target.value)
+            const breed = breeds.find(b => b.name === e.target.value)
+            selectedBreed = breed
+            loadNavigationForBreed(selectedBreed)
         })
 
     }
