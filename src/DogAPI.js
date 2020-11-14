@@ -17,7 +17,6 @@ class DogAPI {
     }
 
     async fetchPreviewImageBatch() {
-
         const initial = this.previewPageCount * 9
         const targetBreeds = this.breeds.slice(initial, initial + 9)
 

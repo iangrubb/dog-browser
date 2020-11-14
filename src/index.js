@@ -1,52 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-    // DOM elements
-
     const mainTag = document.querySelector("main")
     const headerTag = document.querySelector("header")
     const navTag = document.querySelector("nav")
-
-
-
-
-
-    // HTML rendering
-
-    const dogImageHTML = (url, breedName) => `<img src="${url}" alt="${breedName}" width="200">`
-    
-    const breedSelectHTML = (breed) => {
-        return `
-            <div>
-                <h3>${breed.name}</h3>
-                ${dogImageHTML(breed.previewImage, breed.name)}
-                <button data-breed-id="${breed.id}">Select</button>
-            </div>
-        `
-    }
-
-    const renderDogBrowserHTML = (breeds) => {
-        return `
-            ${breeds.map(breedSelectHTML).join("")}
-            <button id="more-dogs-button">More</button>
-        `
-    }
-
-    const breedOptionHTML = (breed, selectedBreed) => `<option ${breed.id === selectedBreed.id ? "selected" : ""} value="${breed.id}">${breed.name}</option>`
-
-    const navigationHTML = (breeds, selectedBreed) => {
-        return `
-            <span>Select Breed:<span>
-            <select>
-                ${breeds.map(breed => breedOptionHTML(breed, selectedBreed)).join("")}
-            <select>
-            <button id="random-dog-button">Random ${selectedBreed.name}</button>
-            <button id="viewed-dogs-button">Viewed ${selectedBreed.name}s</button>
-            <button id="browse-breeds">Browse Breeds</button>
-        `
-    }
-
-
-
 
     let dogAPI = await DogAPI.asyncConstructor()
 
@@ -55,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const loadRandomDogOfBreed = breed => {
         dogAPI.requestRandomImageForBreed(breed.id)
         .then(imageUrl => {
-            mainTag.innerHTML = dogImageHTML(imageUrl, breed.name)
+            mainTag.innerHTML = Markup.dogImage(imageUrl, breed.name)
         })
     }
 
@@ -63,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         mainTag.innerHTML =
             dogAPI.getBreedById(breed.id)
             .randomImages()
-            .map(image => dogImageHTML(image, breed.name))
+            .map(image => Markup.dogImage(image, breed.name))
             .join("")
     }
 
@@ -71,17 +27,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const previewedBreeds = dogAPI.getBreedsWithPreviews()
 
         if (previewedBreeds.length > 0) {
-            mainTag.innerHTML = renderDogBrowserHTML(previewedBreeds)
+            mainTag.innerHTML = Markup.dogBrowser(previewedBreeds)
         } else {
             dogAPI.fetchPreviewImageBatch()
             .then(fetchedBreeds => {
-                mainTag.innerHTML = renderDogBrowserHTML(fetchedBreeds)
+                mainTag.innerHTML = Markup.dogBrowser(fetchedBreeds)
             })
         }
     }
 
     const loadNavigationForBreed = selectedBreed => {
-        navTag.innerHTML = navigationHTML(breeds, selectedBreed)
+        navTag.innerHTML = Markup.navigation(breeds, selectedBreed)
         loadRandomDogOfBreed(selectedBreed)
     }
 
@@ -101,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .then(breeds => {
                 const moreDogsButton = document.getElementById("more-dogs-button")
                 moreDogsButton.insertAdjacentHTML("beforebegin",
-                    breeds.map(breedSelectHTML).join("")
+                    breeds.map(Markup.breedSelect).join("")
                 )
             })
         }
@@ -123,7 +79,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectedBreed = breed
         loadNavigationForBreed(selectedBreed)
     })
-    
     
 })
 
