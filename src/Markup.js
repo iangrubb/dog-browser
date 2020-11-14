@@ -24,7 +24,7 @@ class Markup {
         return `
             <div>
                 <h3>${breed.name}</h3>
-                ${dogImageHTML(breed.previewImage, breed.name)}
+                ${Markup.dogImage(breed.previewImage, breed.name)}
                 <button data-breed-id="${breed.id}">Select</button>
             </div>
         `
@@ -32,7 +32,7 @@ class Markup {
 
     static dogBrowser(breeds) {
         return `
-            ${breeds.map(Markup.breedSelect(breed)).join("")}
+            ${breeds.map(Markup.breedSelect).join("")}
             <button id="more-dogs-button">More</button>
         `
     }

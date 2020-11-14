@@ -46,7 +46,6 @@ class DogAPI {
         return this.breeds.find(b => b.name === name)
     }
 
-
     // Private
 
     fetchDogImageForBreed(id) {
